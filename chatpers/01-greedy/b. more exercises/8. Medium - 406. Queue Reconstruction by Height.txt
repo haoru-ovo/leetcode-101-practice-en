@@ -1,0 +1,128 @@
+# 5. Medium – 406. Queue Reconstruction by Height
+
+**Tags:** Greedy, Sorting, Insertion
+
+---
+
+## Problem Description (English)
+
+You are given an array `people` where each element is `people[i] = [h, k]`:
+
+- `h` is the height of the `i`‑th person.
+- `k` is the number of people in front of this person who have a height greater than or equal to `h`.
+
+The queue is to be reconstructed such that for every person, the value `k` is exactly the number of people standing in front of them with height at least `h`.
+
+Return any valid queue that satisfies these conditions.
+
+---
+
+## 中文题意（简要）
+
+给定数组 `people`，其中 `people[i] = [h, k]`：  
+- `h` 表示这个人的身高；  
+- `k` 表示队伍中排在他前面、身高 `>= h` 的人数。  
+
+请重新排列这些人，使得每个人前面**身高不低于他的人数**恰好等于 `k`。  
+返回任意一个满足条件的队伍顺序。
+
+---
+
+## Examples
+
+**Example 1**  
+
+Input: `people = [[7,0],[4,4],[7,1],[5,0],[6,1],[5,2]]`  
+Output: `[[5,0],[7,0],[5,2],[6,1],[4,4],[7,1]]`  
+
+**Example 2**  
+
+Input: `people = [[6,0],[5,0],[4,0],[3,2],[2,2],[1,4]]`  
+Output: `[[4,0],[5,0],[2,2],[3,2],[1,4],[6,0]]`  
+
+---
+
+## Constraints
+
+- `1 <= people.length <= 2000`  
+- `0 <= h <= 10^6`  
+- `0 <= k < people.length`
+
+---
+
+## Python Code
+
+```python
+from typing import List
+
+class Solution:
+    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:
+        # Sort by height descending; if heights are equal, by k ascending.
+        people.sort(key=lambda x: (-x[0], x[1]))
+
+        queue: List[List[int]] = []
+        for h, k in people:
+            # Insert the person at index k.
+            queue.insert(k, [h, k])
+
+        return queue
+```
+
+---
+
+## Solution Explanation (English)
+
+The book hints that this problem requires both **sorting** and **insertion** operations, and the greedy insight is the key.
+
+### 1. Sort by height (descending), then by k (ascending)
+
+We first sort the array as follows:
+
+1. Higher people come first (sort by `h` in **descending** order).  
+2. Among people with the same height, smaller `k` comes first (sort by `k` in **ascending** order).
+
+After this sorting, whenever we look at some person `[h, k]`, all people who are taller than `h` have already been placed, and people with the same height will be processed in order of increasing `k`.
+
+### 2. Insert each person at index k
+
+We start with an empty queue and process people in sorted order.  
+For each person `[h, k]`, we insert them into the current queue at index `k`.  
+
+Why does this work?
+
+- Since we are processing from tallest to shortest, when we insert `[h, k]`, all people already in the queue are **not shorter** than `h`.  
+- Inserting at position `k` ensures that exactly `k` people in front of them are of height `>= h`.  
+- When we later insert shorter people, they do not affect the counts for taller people, because `k` only cares about people with height at least `h`.
+
+Thus the greedy strategy of "tall first, insert at position `k`" constructs a queue satisfying all constraints.
+
+- Time complexity: sorting takes `O(n log n)`, and insertions may cost up to `O(n^2)` in the worst case.  
+- Space complexity: `O(n)` for the reconstructed queue.
+
+---
+
+## 题解讲解（中文）
+
+书里对这道进阶题的提示是：**需要同时用到排序和插入操作**，核心贪心是：**先安排高个子，再安排矮个子**。
+
+### 1. 按身高降序、k 升序排序
+
+对数组 `people` 排序：
+
+1. 身高 `h` 按 **降序** 排序，高个子排在前面；  
+2. 如果身高相同，则按 `k` **升序** 排序。  
+
+排序后，当我们处理某个人 `[h, k]` 时，所有比他高的人都已经处理完成，同身高的人会从小 `k` 到大 `k` 依次处理。
+
+### 2. 依次插入到下标 k 的位置
+
+从空队列 `queue` 开始，按排序后的顺序遍历每个人 `[h, k]`，直接把他插入到 `queue` 的下标 `k` 位置：
+
+- 因为已经排好的都是身高 `>= h` 的人，插入到位置 `k`，就保证他前面正好有 `k` 个身高不低于他的人；  
+- 之后插入更矮的人时，只会在他前后插入个子更矮的人，不会改变他前面“高个子”的数量。
+
+因此，“**按身高降序排序 + 按 k 插入**”就是满足题目条件的贪心构造方法。
+
+时间复杂度：排序 `O(n log n)`，插入最坏 `O(n^2)`；空间复杂度 `O(n)`。
+
+---

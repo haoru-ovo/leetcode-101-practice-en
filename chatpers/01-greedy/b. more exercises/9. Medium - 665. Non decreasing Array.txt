@@ -1,0 +1,123 @@
+# 6. Medium – 665. Non-decreasing Array
+
+**Tags:** Array, Greedy
+
+---
+
+## Problem Description (English)
+
+Given an integer array `nums`, check whether it can become **non-decreasing** by modifying **at most one element**.
+
+An array is non-decreasing if for every `i` we have `nums[i] <= nums[i+1]`.
+
+Return `true` if it is possible with at most one modification, and `false` otherwise.
+
+---
+
+## 中文题意（简要）
+
+给定整数数组 `nums`，判断能否通过 **最多修改一个元素** 的值，使数组变成 **非递减序列**，即对所有 `i` 都有 `nums[i] <= nums[i+1]`。  
+如果可以，返回 `true`，否则返回 `false`。
+
+---
+
+## Examples
+
+**Example 1**  
+
+Input: `nums = [4,2,3]`  
+Output: `true`  
+Explanation: Modify 4 to 1 or 2 to get a non-decreasing array.
+
+**Example 2**  
+
+Input: `nums = [4,2,1]`  
+Output: `false`  
+Explanation: At least two modifications are required.
+
+---
+
+## Constraints
+
+- `1 <= nums.length <= 10^4`  
+- `-10^5 <= nums[i] <= 10^5`
+
+---
+
+## Python Code
+
+```python
+from typing import List
+
+class Solution:
+    def checkPossibility(self, nums: List[int]) -> bool:
+        modified = 0
+
+        for i in range(len(nums) - 1):
+            if nums[i] > nums[i + 1]:
+                # We found a violation of the non-decreasing rule.
+                if modified == 1:
+                    return False
+                modified += 1
+
+                # Try to fix by lowering nums[i] or raising nums[i+1].
+                if i == 0 or nums[i - 1] <= nums[i + 1]:
+                    # Safe to lower nums[i] to nums[i+1].
+                    nums[i] = nums[i + 1]
+                else:
+                    # Otherwise we adjust nums[i+1] up to nums[i].
+                    nums[i + 1] = nums[i]
+
+        return True
+```
+
+---
+
+## Solution Explanation (English)
+
+The book places this problem in the greedy section and suggests carefully checking whether a local adjustment is still globally optimal.
+
+We scan the array to detect violations of the non-decreasing condition, i.e. positions where `nums[i] > nums[i+1]`.
+
+We are allowed to modify at most **one** element, so:
+
+1. If we encounter more than one violation, we can immediately return `false`.
+2. When we see the first violation at index `i`, we must decide which side to modify — either `nums[i]` or `nums[i+1]`.
+
+The key local rule is:
+
+- If `i == 0` (no element on the left), or `nums[i-1] <= nums[i+1]`, then we can safely **lower** `nums[i]` to `nums[i+1]`. This keeps the left part non-decreasing and does not break the relation with `nums[i+1]`.
+- Otherwise, we should **raise** `nums[i+1]` to `nums[i]`, because changing `nums[i]` would break the condition with `nums[i-1]`.
+
+By applying this rule at most once, we ensure that after the modification the array remains a candidate for being non-decreasing. If we finish the scan without needing more than one change, the answer is `true`.
+
+- Time complexity: `O(n)`  
+- Space complexity: `O(1)` extra
+
+---
+
+## 题解讲解（中文）
+
+这道题在书里作为贪心练习，提示是：**要认真验证你的局部修改策略在各种情况下是否依然最优**。
+
+我们要做的是在扫描数组时，找到违反非递减条件的位置，即 `nums[i] > nums[i+1]`。  
+允许修改的次数最多只有一次，因此：
+
+1. 如果遇到超过一次的违例，说明至少要改两处，直接返回 `false`；  
+2. 对于第一次出现违例的位置 `i`，需要在 `nums[i]` 和 `nums[i+1]` 中选择一个进行调整。  
+
+具体的贪心判断规则是：
+
+- 如果 `i == 0`，或者左边元素 `nums[i-1] <= nums[i+1]`，  
+  那么把 `nums[i]` 降为 `nums[i+1]` 是安全的：  
+  - 这样不会破坏 `nums[i-1] <= nums[i]`（因为新 `nums[i]` 更小或相等）；  
+  - 同时也能保证 `nums[i] <= nums[i+1]`。  
+- 否则，如果 `nums[i-1] > nums[i+1]`，  
+  就不能动 `nums[i]`，只能把 `nums[i+1]` 提高到 `nums[i]`，以免破坏前面的单调性。  
+
+我们用一个计数器 `modified` 记录修改次数，当它超过 1 时立即返回 `false`。  
+如果扫描结束后没有超过一次修改，就说明存在一种方式使数组变为非递减，返回 `true`。
+
+时间复杂度 `O(n)`，空间复杂度 `O(1)`。
+
+---

@@ -1,0 +1,125 @@
+# 2. Medium – 452. Minimum Number of Arrows to Burst Balloons
+
+**Tags:** Greedy, Sorting, Intervals
+
+---
+
+## Problem Description (English)
+
+There are some spherical balloons attached to a wall.  
+For each balloon `i`, you are given an interval `points[i] = [x_start, x_end]` describing the horizontal diameter of the balloon.
+
+You can shoot a **vertical** arrow from any x-coordinate. Once fired from position `x`, the arrow goes upwards and bursts **every** balloon whose interval covers `x`, i.e. all balloons with `x_start <= x <= x_end`.
+
+Return the **minimum** number of arrows that must be shot to burst all balloons.
+
+---
+
+## 中文题意（简要）
+
+每个气球在 x 轴上的投影是区间 `[x_start, x_end]`。  
+你可以在 x 轴上的任意位置竖直向上射箭，一支箭能够射破所有覆盖该 x 的气球。  
+问：至少需要多少支箭才能把所有气球都射爆。
+
+---
+
+## Examples
+
+**Example 1**  
+
+Input: `points = [[10,16],[2,8],[1,6],[7,12]]`  
+Output: `2`  
+
+**Example 2**  
+
+Input: `points = [[1,2],[3,4],[5,6],[7,8]]`  
+Output: `4`  
+
+**Example 3**  
+
+Input: `points = [[1,2],[2,3],[3,4],[4,5]]`  
+Output: `2`  
+
+---
+
+## Constraints
+
+- `1 <= points.length <= 10^5`  
+- `points[i].length == 2`  
+- `-2^31 <= x_start < x_end <= 2^31 - 1`
+
+---
+
+## Python Code
+
+```python
+from typing import List
+
+class Solution:
+    def findMinArrowShots(self, points: List[List[int]]) -> int:
+        if not points:
+            return 0
+
+        # Greedy: sort by end position, then choose disjoint intervals
+        points.sort(key=lambda interval: interval[1])
+
+        arrows = 1
+        current_end = points[0][1]
+
+        for start, end in points[1:]:
+            # If the next balloon starts after current_end,
+            # the current arrow can no longer burst it.
+            if start > current_end:
+                arrows += 1
+                current_end = end
+            # Otherwise, this balloon is already covered.
+
+        return arrows
+```
+
+---
+
+## Solution Explanation (English)
+
+In the book this problem is compared with **435. Non-overlapping Intervals**.  
+Both problems ask us to select as many non-overlapping intervals as possible; here, each group of overlapping balloons can be burst with one arrow.
+
+The key greedy idea is:
+
+1. **Sort intervals by their end coordinate** in ascending order.  
+   Picking the balloon that ends earliest leaves as much space as possible for the remaining balloons, just like in interval scheduling.
+2. Shoot the first arrow at `current_end = points[0][1]`.  
+   This arrow will burst all balloons whose starting point is `<= current_end`.
+3. Traverse the remaining balloons:
+   - If `start <= current_end`, then this balloon overlaps with the current arrow position and will be burst by the existing arrow.  
+   - If `start > current_end`, then the current arrow cannot reach this balloon, so we must shoot a new arrow and set `current_end = end`.
+
+Why is this optimal?  
+Once we decide that some balloon is the “representative” of a group of overlapping intervals, placing the arrow at its right end is the best possible choice: putting the arrow further to the right can only reduce future overlap and never increases it. This is the standard argument for interval scheduling with minimum number of groups.
+
+- Time complexity: `O(n log n)` due to sorting  
+- Space complexity: `O(1)` extra
+
+---
+
+## 题解讲解（中文）
+
+书中把这道题和 **435. Non-overlapping Intervals** 放在一起，核心思路是一样的：  
+**用尽量少的“点”去覆盖所有区间**。
+
+贪心策略：
+
+1. 把所有气球按右端点 `end` **升序排序**。  
+   先考虑最早结束的气球，能留给后面气球的空间最多。  
+2. 把第一支箭射在第一个区间的右端点 `current_end = points[0][1]`。  
+3. 从第二个区间开始依次遍历 `[start, end]`：  
+   - 如果 `start <= current_end`，说明当前气球和箭的位置有重叠，这支箭可以顺便把它射爆，不需要新增箭；  
+   - 如果 `start > current_end`，说明当前箭射不到它了，必须再射一支新箭，并把 `current_end` 更新为当前区间的 `end`。
+
+为什么这样一定是最优的？  
+把一组相互重叠的区间交给一支箭处理时，**把箭射在这组区间中“结束最早”的那个右端点，是不会比射在别的地方更差的选择**，因为射得更右只会失去覆盖左边某些区间的机会。  
+这个证明和经典的“区间调度 / 活动安排”问题一模一样。
+
+时间复杂度为排序的 `O(n log n)`，额外空间为 `O(1)`。
+
+---

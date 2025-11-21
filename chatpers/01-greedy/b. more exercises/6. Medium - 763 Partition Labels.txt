@@ -1,0 +1,123 @@
+# 3. Medium – 763. Partition Labels
+
+**Tags:** Greedy, Hash Table, Two Pointers, String
+
+---
+
+## Problem Description (English)
+
+You are given a string `s` consisting of lowercase English letters.  
+We want to partition `s` into as many parts as possible so that each letter appears in **at most one** part.
+
+In other words, for each character, all its occurrences must lie within a single partition.
+
+Return a list of integers representing the size of these parts, in order.
+
+---
+
+## 中文题意（简要）
+
+给定一个只包含小写字母的字符串 `s`。  
+要把它切分成尽可能多的连续子串，使得**同一个字母的所有出现位置都在同一个子串中**。  
+返回每个子串的长度。
+
+---
+
+## Examples
+
+**Example 1**  
+
+Input: `s = "ababcbacadefegdehijhklij"`  
+Output: `[9,7,8]`  
+
+**Example 2**  
+
+Input: `s = "eccbbbbdec"`  
+Output: `[10]`  
+
+---
+
+## Constraints
+
+- `1 <= s.length <= 500`  
+- `s` consists of lowercase English letters.
+
+---
+
+## Python Code
+
+```python
+from typing import List
+
+class Solution:
+    def partitionLabels(self, s: str) -> List[int]:
+        # Preprocessing: record the last index of each character.
+        last_index = {ch: i for i, ch in enumerate(s)}
+
+        result: List[int] = []
+        start = 0   # start index of current partition
+        end = 0     # farthest last index seen so far
+
+        # Greedy scan: extend the current partition to cover all chars seen.
+        for i, ch in enumerate(s):
+            end = max(end, last_index[ch])
+            if i == end:
+                # We can cut here: all chars in [start, end] end within this range.
+                result.append(end - start + 1)
+                start = i + 1
+
+        return result
+```
+
+---
+
+## Solution Explanation (English)
+
+The book hints that a useful preprocessing step is to compute, for each character, some global information such as its *last occurrence*. This dramatically simplifies the problem.
+
+We solve it in two phases:
+
+1. **Preprocessing:**  
+   Traverse `s` once and store `last_index[ch]` — the last position where character `ch` appears.
+2. **Greedy partitioning:**  
+   We walk through the string with a sliding window defined by two pointers `start` and `end`:
+   - `start` is the beginning index of the current partition.  
+   - `end` is the farthest last index among all characters we have seen in this partition so far.
+
+   For each index `i` and character `ch = s[i]`:
+   - Update `end = max(end, last_index[ch])` so that the partition will contain all future occurrences of `ch`.  
+   - Whenever `i == end`, every character in the current window `[start, end]` has its last occurrence inside this window, so this window can form a standalone partition. We record its length and start a new segment from `i + 1`.
+
+This greedy strategy is optimal because we always extend the current partition just enough to include all occurrences of its characters, and we cut as soon as it is safe. Cutting earlier would split some character across partitions; cutting later would only make a partition longer and reduce the total number of parts.
+
+- Time complexity: `O(n)`  
+- Space complexity: `O(1)` extra (at most 26 different lowercase letters)
+
+---
+
+## 题解讲解（中文）
+
+书里的提示是：**在处理数组 / 字符串前，先统计一遍信息（如最后一次出现位置），可以让题目大幅变简单。**  
+这道题正是这样的典型例子。
+
+整体分两步：
+
+1. **预处理：记录每个字符最后出现的位置。**  
+   扫一遍字符串，对每个字符 `ch` 记录 `last_index[ch]`，表示它在字符串中最右边的下标。  
+2. **贪心切分：扫一遍字符串，用区间 `[start, end]` 表示当前分段。**  
+   - `start`：当前分段的起点；  
+   - `end`：当前分段内的字符“最后一次出现位置”的最大值。  
+
+   遍历每个位置 `i`，字符为 `ch = s[i]`：  
+   - 更新 `end = max(end, last_index[ch])`，保证本段最终能包含所有出现过的字符；  
+   - 如果此时 `i == end`，说明从 `start` 到 `end` 之间的字符，在后面都不会再出现了，这一段可以单独成段。记录长度 `end - start + 1`，然后令 `start = i + 1` 开始新一段。
+
+为什么这是最优的切分方式？  
+- 如果在 `i < end` 时就切分，会把某个字符“截断”，违反题目要求；  
+- 如果 `i == end` 还不切分，只会让这段白白变长、导致分段数变少，不符合“尽可能多地切分”的目标。  
+
+因此，这种“利用最后一次出现位置 + 尽早安全切分”的贪心策略就是正确且最优的。
+
+时间复杂度 `O(n)`，额外空间 `O(1)`（只有 26 个小写字母）。
+
+---
